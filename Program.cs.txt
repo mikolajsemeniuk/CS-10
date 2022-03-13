@@ -1,0 +1,28 @@
+// See https://aka.ms/new-console-template for more information
+using System.Text.RegularExpressions;
+using Data;
+using Data.Entities;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+
+var file = "appsettings.json";
+var directory = System.AppContext.BaseDirectory;
+var separator = Path.DirectorySeparatorChar;
+var path = Regex.Replace(directory, $@"bin{separator}Debug{separator}net\d.\d{separator}", "");
+
+var config = new ConfigurationBuilder()
+    .SetBasePath(path)
+    .AddJsonFile(file, optional: false)
+    .Build();
+
+Console.WriteLine(config["ConnectionStrings:DefaultConnection"]);
+
+var options = new DbContextOptionsBuilder<DataContext>()
+    .UseSqlite(config["ConnectionStrings:DefaultConnection"], migration => migration.MigrationsAssembly("Seeder"));
+
+
+using (var context = new DataContext(options.Options))
+{
+    context.Customers.Add(new Customer("john", "mock", "john@mock.com", "123456789", "https://example.com", 24));
+    // context.SaveChanges();
+}
